@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35828.75 d17.13
+VisualStudioVersion = 17.13.35828.75
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deeplinks.Help.Api", "src/backend/Deeplinks.Help.Api/Deeplinks.Help.Api.csproj", "{C67E7CA5-5C22-49EC-B1C3-4B435DDEEEBC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deeplinks.Help.Api", "src\backend\Deeplinks.Help.Api\Deeplinks.Help.Api.csproj", "{C67E7CA5-5C22-49EC-B1C3-4B435DDEEEBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deeplinks.Help.Tests.Unit", "tests\Deeplinks.Help.Tests.Unit\Deeplinks.Help.Tests.Unit.csproj", "{F37747EE-4389-4DD6-940D-E9A257A9A575}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{C67E7CA5-5C22-49EC-B1C3-4B435DDEEEBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C67E7CA5-5C22-49EC-B1C3-4B435DDEEEBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C67E7CA5-5C22-49EC-B1C3-4B435DDEEEBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F37747EE-4389-4DD6-940D-E9A257A9A575}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F37747EE-4389-4DD6-940D-E9A257A9A575}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F37747EE-4389-4DD6-940D-E9A257A9A575}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F37747EE-4389-4DD6-940D-E9A257A9A575}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
