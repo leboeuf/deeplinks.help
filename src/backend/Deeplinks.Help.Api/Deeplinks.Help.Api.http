@@ -1,0 +1,6 @@
+@HostAddress = https://localhost:7169
+
+POST {{HostAddress}}/checks/fetch-android
+Content-Type: application/json
+"maps.google.com"
+###

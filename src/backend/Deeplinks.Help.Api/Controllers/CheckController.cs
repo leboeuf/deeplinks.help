@@ -1,33 +1,23 @@
 using Deeplinks.Help.Api.Infrastructure;
-using Microsoft.AspNetCore.Http.Extensions;
+using Deeplinks.Help.Api.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace Deeplinks.Help.Api.Controllers;
 
 [ApiController]
-[Route("[controller]")]
-public class CheckController : ControllerBase
+[Route("checks")]
+public class CheckController : BaseApiController
 {
-    private readonly ILogger<CheckController> _logger;
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly CheckService _checkService;
 
-    public CheckController(
-        ILogger<CheckController> logger,
-        IHttpClientFactory httpClientFactory)
+    public CheckController(CheckService checkService)
     {
-        _logger = logger;
-        _httpClientFactory = httpClientFactory;
+        _checkService = checkService;
     }
 
-    [HttpPost]
+    [HttpPost("fetch-android")]
     public async Task<IActionResult> FetchAndroid([FromBody] string input)
     {
-        var uri = Utils.CreateSafeUri(input);
-        var file = new Uri($"https://{uri.Host}/.well-known/assetlinks.json");
-        using var httpClient = _httpClientFactory.CreateClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, uri);
-        var response = await httpClient.SendAsync(request);
-        return Ok();
+        return ApiResult(await _checkService.FetchAndroid(input));
     }
 }
