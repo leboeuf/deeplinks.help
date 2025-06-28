@@ -2,9 +2,9 @@
 
 namespace Deeplinks.Help.Api.Models.Input
 {
-    public class HashInput
+    public class DomainInput
     {
         [Required]
-        public required string Hash { get; init; }
+        public required string Domain { get; init; }
     }
 }

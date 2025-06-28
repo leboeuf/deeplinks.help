@@ -1,5 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Deeplinks.Help.Api.Infrastructure
 {
@@ -75,6 +77,21 @@ namespace Deeplinks.Help.Api.Infrastructure
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Hash a string using MD5.
+        /// </summary>
+        public static string Hash(string input)
+        {
+            var inputBytes = Encoding.UTF8.GetBytes(input);
+            var hashBytes = MD5.HashData(inputBytes);
+
+            var sb = new StringBuilder();
+            foreach (byte b in hashBytes)
+                sb.Append(b.ToString("x2"));
+
+            return sb.ToString();
         }
     }
 }

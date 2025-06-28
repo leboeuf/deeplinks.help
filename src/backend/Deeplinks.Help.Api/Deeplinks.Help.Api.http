@@ -1,6 +1,13 @@
 @HostAddress = https://localhost:7169
 
-POST {{HostAddress}}/checks/fetch-android
+POST {{HostAddress}}/checks/validate-domain
 Content-Type: application/json
 { "domain": "maps.google.com" }
+
+###
+
+POST {{HostAddress}}/checks/fetch-android
+Content-Type: application/json
+{ "hash": "3f550bc163144ccb175a118c37a6641d" }
+
 ###

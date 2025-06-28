@@ -16,9 +16,15 @@ public class CheckController : BaseApiController
         _checkService = checkService;
     }
 
-    [HttpPost("fetch-android")]
-    public async Task<IActionResult> FetchAndroid([FromBody] DomainInput input)
+    [HttpPost("validate-domain")]
+    public IActionResult ValidateDomain([FromBody] DomainInput input)
     {
-        return ApiResult(await _checkService.FetchAndroid(input.Domain));
+        return ApiResult(_checkService.ValidateDomain(input.Domain));
+    }
+
+    [HttpPost("fetch-android")]
+    public async Task<IActionResult> FetchAndroid([FromBody] HashInput input)
+    {
+        return ApiResult(await _checkService.FetchAndroid(input.Hash));
     }
 }

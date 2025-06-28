@@ -1,8 +1,10 @@
-﻿using Deeplinks.Help.Api.Infrastructure.Constants;
-using Deeplinks.Help.Api.Infrastructure;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Deeplinks.Help.Api.Infrastructure;
+using Deeplinks.Help.Api.Infrastructure.Configuration;
+using Deeplinks.Help.Api.Infrastructure.Constants;
+using Deeplinks.Help.Api.Models;
 using Deeplinks.Help.Api.Models.Output;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using System.Net;
 
 namespace Deeplinks.Help.Api.Services
@@ -10,30 +12,32 @@ namespace Deeplinks.Help.Api.Services
     public class CheckService
     {
         private readonly ILogger<CheckService> _logger;
+        private readonly TimeSpan _domainDataCacheDuration;
         private readonly IMemoryCache _memoryCache;
         private readonly IHttpClientFactory _httpClientFactory;
 
         public CheckService(
             ILogger<CheckService> logger,
+            IOptions<CacheConfiguration> cacheConfiguration,
             IMemoryCache memoryCache,
             IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
             _memoryCache = memoryCache;
             _httpClientFactory = httpClientFactory;
+
+            _domainDataCacheDuration = TimeSpan.FromSeconds(cacheConfiguration.Value.DomainDataCacheDurationInSeconds);
         }
 
         /// <summary>
-        /// Fetches the Android App Links assetlinks.json file from the specified domain.
+        /// Validates the user-input domain. If valid, caches it and returns a hash
+        /// that the client must provide in future requests to identify this domain.
         /// </summary>
-        public async Task<ServiceOutput> FetchAndroid(string domain)
+        public ServiceOutput ValidateDomain(string domain)
         {
-            // add caching to avoid multiple requests for the same domain
-            // Assign a guid or hash to the domain upon the first request, and reuse it in the next requests so we don't have to validate the input every check
             var uri = Utils.CreateSafeUri(domain);
             if (uri == null)
             {
-                _logger.LogWarning("Invalid URI provided: {domain}", domain);
                 return new ServiceOutput
                 {
                     Success = false,
@@ -45,7 +49,40 @@ namespace Deeplinks.Help.Api.Services
                 };
             }
 
-            var file = new Uri($"https://{uri.Host}/.well-known/assetlinks.json");
+            var domainHash = Utils.Hash(uri.Host);
+            var domainData = _memoryCache.GetOrCreate(domainHash, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = _domainDataCacheDuration;
+                return new DomainData { Domain = uri.Host };
+            });
+
+            return new ServiceOutput
+            {
+                Success = true,
+                Model = domainHash
+            };
+        }
+
+        /// <summary>
+        /// Fetches the Android App Links assetlinks.json file from the specified domain.
+        /// </summary>
+        public async Task<ServiceOutput> FetchAndroid(string domainHash)
+        {
+            var domainData = _memoryCache.Get<DomainData>(domainHash);
+            if (domainData == null)
+            {
+                return new ServiceOutput
+                {
+                    Success = false,
+                    Error = new ErrorOutput
+                    {
+                        StatusCode = HttpStatusCode.NotFound,
+                        Message = "Domain not found in cache."
+                    }
+                };
+            }
+
+            var file = new Uri($"https://{domainData.Domain}/.well-known/assetlinks.json");
             using var httpClient = _httpClientFactory.CreateClient(HttpClients.ChecksHttpClient);
             httpClient.Timeout = HttpClientConfiguration.Timeout;
 

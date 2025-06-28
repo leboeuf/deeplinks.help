@@ -1,3 +1,4 @@
+using Deeplinks.Help.Api.Infrastructure.Configuration;
 using Deeplinks.Help.Api.Infrastructure.Constants;
 using Deeplinks.Help.Api.Services;
 using System.Net;
@@ -28,6 +29,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.Configure<CacheConfiguration>(builder.Configuration.GetSection("Cache"));
 builder.Services.AddSingleton<CheckService>();
 
 var app = builder.Build();
