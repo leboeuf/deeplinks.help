@@ -69,7 +69,7 @@
                                 :class="(c.status === 'warning' || c.status === 'error') ? 'cursor-pointer' : ''"
                                 @click="toggleCheck(idx)">
                                 <div class="flex items-center font-medium"
-                                    :class="c.status === 'success' ? 'text-green-700' : c.status === 'warning' ? 'text-yellow-700' : c.status === 'error' ? 'text-red-700' : 'text-gray-700'">
+                                    :class="c.status === 'cancelled' ? 'text-gray-400' : c.status === 'success' ? 'text-green-700' : c.status === 'warning' ? 'text-yellow-700' : c.status === 'error' ? 'text-red-700' : 'text-gray-700'">
                                     <template x-if="c.status === 'loading'">
                                         <svg class='w-5 h-5 mr-2 animate-spin text-gray-400' fill='none'
                                             stroke='currentColor' stroke-width='2' viewBox='0 0 24 24'>
@@ -97,6 +97,15 @@
                                             stroke-width='2' viewBox='0 0 24 24'>
                                             <path stroke-linecap='round' stroke-linejoin='round'
                                                 d='M6 18L18 6M6 6l12 12' />
+                                        </svg>
+                                    </template>
+                                    <template x-if="c.status === 'cancelled'">
+                                        <svg class='w-5 h-5 mr-2 text-gray-400' fill='none' stroke='currentColor'
+                                            stroke-width='2' viewBox='0 0 24 24'>
+                                            <circle cx='12' cy='12' r='10' stroke='currentColor'
+                                                stroke-dasharray='2,2' />
+                                            <line x1='8' y1='12' x2='16' y2='12' stroke='currentColor'
+                                                stroke-width='2' />
                                         </svg>
                                     </template>
                                     <span x-text="c.label"></span>
@@ -186,6 +195,7 @@
             return {
                 domain: '',
                 domainError: '',
+                domainHash: '',
                 isRunning: false,
                 isManifestRunning: false,
                 runBtnLabel: 'Run Checks',
@@ -213,37 +223,75 @@
                     this.isManifestRunning = false;
                 },
                 async runChecks() {
+                    this.checks = [];
+
                     if (!this.domain.trim()) {
                         this.domainError = 'Please enter a domain.';
                         return;
                     }
-                    this.domainError = '';
+
                     this.isRunning = true;
+
+                    // Validate domain
+                    const validateDomainResponse = await fetch(`https://deeplinks.maximeleboeuf.com/checks/validate-domain`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ domain: this.domain })
+                    });
+
+                    const validateDomainData = await validateDomainResponse.text();
+                    if (validateDomainResponse.status !== 200) {
+                        this.domainError = validateDomainData || 'Unexpected error.';
+                        this.isRunning = false;
+                        return;
+                    }
+
+                    this.domainHash = validateDomainData;
+
+                    this.domainError = '';
                     this.runBtnLabel = 'Running Checks...';
                     this.checks = [
-                        { label: 'Fetching assetlinks.json file', status: 'loading', msg: '', expanded: false },
-                        { label: 'Fetching apple-app-site-association file', status: 'loading', msg: '', expanded: false },
-                        { label: 'Fetching assetlinks.json file from Google', status: 'loading', msg: '', expanded: false },
-                        { label: 'Fetching apple-app-site-association file from Apple', status: 'loading', msg: '', expanded: false },
-                        { label: 'Validating assetlinks.json content', status: 'loading', msg: '', expanded: false },
-                        { label: 'Validating apple-app-site-association content', status: 'loading', msg: '', expanded: false },
-                        { label: 'Checking common issues', status: 'loading', msg: '', expanded: false }
+                        { label: 'Fetching assetlinks.json file', status: 'loading', msg: '', details: '', expanded: false, endpoint: `checks/fetch-android` },
+                        { label: 'Fetching apple-app-site-association file', status: 'loading', msg: '', details: '', expanded: false, endpoint: `checks/apple-app-site-association` },
+                        { label: 'Fetching assetlinks.json file from Google', status: 'loading', msg: '', details: '', expanded: false, endpoint: `checks/assetlinks-google` },
+                        { label: 'Fetching apple-app-site-association file from Apple', status: 'loading', msg: '', details: '', expanded: false, endpoint: `checks/apple-app-site-association-apple` },
+                        { label: 'Validating assetlinks.json content', status: 'loading', msg: '', details: '', expanded: false, endpoint: `checks/validate-assetlinks` },
+                        { label: 'Validating apple-app-site-association content', status: 'loading', msg: '', details: '', expanded: false, endpoint: `checks/validate-apple-app-site-association` },
+                        { label: 'Checking common issues', status: 'loading', msg: '', details: '', expanded: false, endpoint: `checks/common-issues` }
                     ];
-                    const simulatedResults = [
-                        { status: 'success', msg: '', details: '' },
-                        { status: 'warning', msg: 'File not found, but not required for Android.', details: 'This file is only required for iOS Universal Links. If your app does not support iOS, you can ignore this warning. Otherwise, see <a href=\'https://developer.apple.com/documentation/xcode/supporting-associated-domains\' target=\'_blank\' class=\'underline text-blue-600\'>Apple documentation</a> for setup.' },
-                        { status: 'success', msg: '', details: '' },
-                        { status: 'warning', msg: 'File not found, but not required for Android.', details: 'This file is only required for iOS Universal Links. If your app does not support iOS, you can ignore this warning. Otherwise, see <a href=\'https://developer.apple.com/documentation/xcode/supporting-associated-domains\' target=\'_blank\' class=\'underline text-blue-600\'>Apple documentation</a> for setup.' },
-                        { status: 'error', msg: 'Invalid JSON format.', details: 'Check your assetlinks.json file for valid JSON. Use a JSON validator and ensure the file is accessible at \'/.well-known/assetlinks.json\'. See <a href=\'https://developer.android.com/training/app-links/verify-site-associations\' target=\'_blank\' class=\'underline text-blue-600\'>Android documentation</a>.' },
-                        { status: 'success', msg: '', details: '' },
-                        { status: 'success', msg: '', details: '' }
-                    ];
+                    let shouldStop = false;
                     for (let i = 0; i < this.checks.length; i++) {
-                        await new Promise(res => setTimeout(res, 700 + Math.random() * 500));
-                        this.checks[i].status = simulatedResults[i].status;
-                        this.checks[i].msg = simulatedResults[i].msg;
-                        this.checks[i].details = simulatedResults[i].details;
-                        this.checks[i].expanded = (this.checks[i].status === 'warning' || this.checks[i].status === 'error');
+                        if (shouldStop) break;
+                        const check = this.checks[i];
+                        try {
+                            const res = await fetch(`https://deeplinks.maximeleboeuf.com/${check.endpoint}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ hash: this.domainHash })
+                            });
+                            const data = await res.json();
+                            check.status = data.status || 'success';
+                            check.msg = data.msg || '';
+                            check.details = data.details || '';
+                            check.expanded = (check.status === 'warning' || check.status === 'error');
+                            if (data.stop) {
+                                shouldStop = true;
+                                // Cancel all remaining checks
+                                for (let j = i + 1; j < this.checks.length; j++) {
+                                    if (this.checks[j].status === 'loading') {
+                                        this.checks[j].status = 'cancelled';
+                                        this.checks[j].msg = 'This check was cancelled.';
+                                        this.checks[j].details = '';
+                                        this.checks[j].expanded = false;
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            check.status = 'error';
+                            check.msg = 'Network or server error.';
+                            check.details = '';
+                            check.expanded = true;
+                        }
                     }
                     this.isRunning = false;
                     this.runBtnLabel = 'Run Again';
