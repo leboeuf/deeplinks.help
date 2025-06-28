@@ -1,9 +1,9 @@
 using Deeplinks.Help.Api.Infrastructure.Constants;
+using Deeplinks.Help.Api.Services;
 using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
+builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
 
 builder.Services.AddControllers();
 builder.Services.AddMemoryCache();
@@ -16,9 +16,23 @@ builder.Services.AddHttpClient(HttpClients.ChecksHttpClient)
         MaxConnectionsPerServer = 64
     });
 
+var allowedCorsOrigin = builder.Configuration.GetValue<string>("AllowedCorsOrigin")!;
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowCorsFromTrustedDomain", policy =>
+    {
+        policy.WithOrigins(allowedCorsOrigin)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+builder.Services.AddSingleton<CheckService>();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.UseCors("AllowCorsFromTrustedDomain");
 
 app.UseHttpsRedirection();
 

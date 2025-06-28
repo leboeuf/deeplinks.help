@@ -26,12 +26,14 @@ namespace Deeplinks.Help.Api.Services
         /// <summary>
         /// Fetches the Android App Links assetlinks.json file from the specified domain.
         /// </summary>
-        public async Task<ServiceOutput> FetchAndroid(string input)
+        public async Task<ServiceOutput> FetchAndroid(string domain)
         {
-            var uri = Utils.CreateSafeUri(input);
+            // add caching to avoid multiple requests for the same domain
+            // Assign a guid or hash to the domain upon the first request, and reuse it in the next requests so we don't have to validate the input every check
+            var uri = Utils.CreateSafeUri(domain);
             if (uri == null)
             {
-                _logger.LogWarning("Invalid URI provided: {Input}", input);
+                _logger.LogWarning("Invalid URI provided: {domain}", domain);
                 return new ServiceOutput
                 {
                     Success = false,

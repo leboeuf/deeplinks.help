@@ -2,5 +2,5 @@
 
 POST {{HostAddress}}/checks/fetch-android
 Content-Type: application/json
-"maps.google.com"
+{ "domain": "maps.google.com" }
 ###

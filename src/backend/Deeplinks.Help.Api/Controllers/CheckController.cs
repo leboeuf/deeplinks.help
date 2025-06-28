@@ -1,4 +1,5 @@
 using Deeplinks.Help.Api.Infrastructure;
+using Deeplinks.Help.Api.Models.Input;
 using Deeplinks.Help.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,8 +17,8 @@ public class CheckController : BaseApiController
     }
 
     [HttpPost("fetch-android")]
-    public async Task<IActionResult> FetchAndroid([FromBody] string input)
+    public async Task<IActionResult> FetchAndroid([FromBody] DomainInput input)
     {
-        return ApiResult(await _checkService.FetchAndroid(input));
+        return ApiResult(await _checkService.FetchAndroid(input.Domain));
     }
 }
