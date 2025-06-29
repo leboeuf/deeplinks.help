@@ -1,0 +1,27 @@
+services:
+  traefik:
+    image: traefik:v3.5.0-rc1
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    
+  deeplinks-help-server:
+    image: deeplinks-help-server:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.deeplinks-help-server.rule=Host(`deeplinks.help`)"
+      - "traefik.http.routers.deeplinks-help-server.entrypoints=web"
+
+  deeplinks-help-wellknown-server:
+    image: deeplinks-help-wellknown-server:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.deeplinks-help-wellknown-server.rule=HostRegexp(`{subdomain:[a-z]+}.deeplinks.help`)"
+      - "traefik.http.routers.deeplinks-help-wellknown-server.entrypoints=web"
