@@ -16,7 +16,7 @@ public class WellKnownController : ControllerBase
 
     [HttpGet("assetlinks.json")]
 #if DEBUG
-    public IActionResult GetAndroid([FromQuery] string subdomain)
+    public IActionResult GetAndroid([FromQuery] string? subdomain)
     {
         return GetExample(subdomain, "assetlinks.json");
     }
@@ -30,7 +30,7 @@ public class WellKnownController : ControllerBase
 
     [HttpGet("apple-app-site-association")]
 #if DEBUG
-    public IActionResult GetApple([FromQuery] string subdomain)
+    public IActionResult GetApple([FromQuery] string? subdomain)
     {
         return GetExample(subdomain, "apple-app-site-association");
     }
@@ -42,7 +42,7 @@ public class WellKnownController : ControllerBase
     }
 #endif
 
-    private IActionResult GetExample(string subdomain, string fileName)
+    private IActionResult GetExample(string? subdomain, string fileName)
     { 
         if (subdomain == null)
         {

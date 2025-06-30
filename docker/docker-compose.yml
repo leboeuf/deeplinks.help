@@ -11,10 +11,10 @@ services:
       - "8080:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-    
+
   deeplinks-help-server:
     build:
-      context: ../..
+      context: ../
       dockerfile: src/backend/Deeplinks.Help.Api/Dockerfile
       target: final
     labels:
@@ -26,7 +26,7 @@ services:
 
   deeplinks-help-examples-server:
     build:
-      context: ../..
+      context: ../
       dockerfile: src/backend/Deeplinks.Help.Examples/Dockerfile
       target: final
     labels:
