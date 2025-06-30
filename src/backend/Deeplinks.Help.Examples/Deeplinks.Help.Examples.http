@@ -1,0 +1,6 @@
+@Deeplinks.Help.Examples_HostAddress = http://localhost:5122
+
+GET {{Deeplinks.Help.Examples_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

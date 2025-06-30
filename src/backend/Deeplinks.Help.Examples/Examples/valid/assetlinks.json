@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "help.deeplinks.app",
+      "sha256_cert_fingerprints": [
+        "45:46:CC:17:DC:82:83:19:C5:15:C8:0D:7B:AF:65:10:69:31:1C:62:37:62:42:07:E0:2F:BA:4B:02:FA:82:A0"
+      ]
+    }
+  }
+]
