@@ -13,15 +13,25 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
     
   deeplinks-help-server:
-    image: deeplinks-help-server:latest
+    build:
+      context: ../..
+      dockerfile: src/backend/Deeplinks.Help.Api/Dockerfile
+      target: final
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.deeplinks-help-server.rule=Host(`deeplinks.help`)"
       - "traefik.http.routers.deeplinks-help-server.entrypoints=web"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
 
-  deeplinks-help-wellknown-server:
-    image: deeplinks-help-wellknown-server:latest
+  deeplinks-help-examples-server:
+    build:
+      context: ../..
+      dockerfile: src/backend/Deeplinks.Help.Examples/Dockerfile
+      target: final
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.deeplinks-help-wellknown-server.rule=HostRegexp(`{subdomain:[a-z]+}.deeplinks.help`)"
-      - "traefik.http.routers.deeplinks-help-wellknown-server.entrypoints=web"
+      - "traefik.http.routers.deeplinks-help-examples-server.rule=HostRegexp(`{subdomain:[a-z]+}.deeplinks.help`)"
+      - "traefik.http.routers.deeplinks-help-examples-server.entrypoints=web"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
