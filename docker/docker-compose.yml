@@ -34,7 +34,7 @@ services:
       target: final
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.deeplinks-help-examples-server.rule=HostRegexp(`{subdomain:[a-z]+}.deeplinks.help`)"
+      - "traefik.http.routers.deeplinks-help-examples-server.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.deeplinks.help`)"
       - "traefik.http.routers.deeplinks-help-examples-server.entrypoints=web"
       - "traefik.http.services.deeplinks-help-examples-server.loadbalancer.server.port=8080"
     environment:
