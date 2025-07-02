@@ -36,8 +36,6 @@ var app = builder.Build();
 
 app.UseCors("AllowCorsFromTrustedDomain");
 
-app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
 app.MapControllers();
