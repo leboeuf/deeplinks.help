@@ -233,7 +233,7 @@
                     this.isRunning = true;
 
                     // Validate domain
-                    const validateDomainResponse = await fetch(`https://deeplinks.maximeleboeuf.com/checks/validate-domain`, {
+                    const validateDomainResponse = await fetch(`https://deeplinks.help/checks/validate-domain`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ domain: this.domain })
