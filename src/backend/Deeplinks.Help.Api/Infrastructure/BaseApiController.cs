@@ -10,7 +10,7 @@ namespace Deeplinks.Help.Api.Infrastructure
         /// </summary>
         protected IActionResult ApiResult(ServiceOutput result)
         {
-            if (!result.Success)
+            if (result.Error != null)
             {
                 return StatusCode((int)result.Error!.StatusCode, result.Error.Message);
             }

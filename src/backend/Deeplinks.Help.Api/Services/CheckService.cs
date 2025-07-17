@@ -40,7 +40,6 @@ namespace Deeplinks.Help.Api.Services
             {
                 return new ServiceOutput
                 {
-                    Success = false,
                     Error = new ErrorOutput
                     {
                         StatusCode = HttpStatusCode.BadRequest,
@@ -50,7 +49,7 @@ namespace Deeplinks.Help.Api.Services
             }
 
             var domainHash = Utils.Hash(uri.Host);
-            var domainData = _memoryCache.GetOrCreate(domainHash, entry =>
+            _ = _memoryCache.GetOrCreate(domainHash, entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = _domainDataCacheDuration;
                 return new DomainData { Domain = uri.Host };
@@ -58,7 +57,6 @@ namespace Deeplinks.Help.Api.Services
 
             return new ServiceOutput
             {
-                Success = true,
                 Model = domainHash
             };
         }
@@ -73,7 +71,6 @@ namespace Deeplinks.Help.Api.Services
             {
                 return new ServiceOutput
                 {
-                    Success = false,
                     Error = new ErrorOutput
                     {
                         StatusCode = HttpStatusCode.NotFound,
@@ -90,11 +87,24 @@ namespace Deeplinks.Help.Api.Services
 
             var response = await httpClient.SendAsync(request);
 
+            if (!response.IsSuccessStatusCode)
+            {
+                return new ServiceOutput
+                {
+                    Model = new CheckOutput
+                    {
+                        Stop = true,
+                        Status = "error",
+                        Msg = "The assetlinks.json file was not found at the expected location (HTTP 404 – Not Found).",
+                        Details = $"Make sure the file is available at https://{domainData.Domain}/.well-known/assetlinks.json and that your server is configured to serve it correctly."
+                    },
+                };
+            }
+
             var body = await response.Content.ReadAsStringAsync();
             return new ServiceOutput
             {
-                Success = true,
-                Model = body,
+                Model = null,
             };
         }
     }
