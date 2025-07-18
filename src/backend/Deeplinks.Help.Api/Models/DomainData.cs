@@ -1,7 +1,4 @@
 ﻿namespace Deeplinks.Help.Api.Models
 {
-    public class DomainData
-    {
-        public required string Domain { get; init; }
-    }
+    public record DomainData(string Domain, string? AssetLinksContent = null, string? AppleAppSiteAssociationContent = null);
 }

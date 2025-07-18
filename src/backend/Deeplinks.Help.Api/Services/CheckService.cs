@@ -52,7 +52,7 @@ namespace Deeplinks.Help.Api.Services
             _ = _memoryCache.GetOrCreate(domainHash, entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = _domainDataCacheDuration;
-                return new DomainData { Domain = uri.Host };
+                return new DomainData(Domain: uri.Host);
             });
 
             return new ServiceOutput
@@ -79,33 +79,54 @@ namespace Deeplinks.Help.Api.Services
                 };
             }
 
-            var file = new Uri($"https://{domainData.Domain}/.well-known/assetlinks.json");
-            using var httpClient = _httpClientFactory.CreateClient(HttpClients.ChecksHttpClient);
-            httpClient.Timeout = HttpClientConfiguration.Timeout;
-
-            var request = new HttpRequestMessage(HttpMethod.Get, file);
-
-            var response = await httpClient.SendAsync(request);
-
-            if (!response.IsSuccessStatusCode)
+            if (domainData.AssetLinksContent == null)
             {
-                return new ServiceOutput
+                var file = new Uri($"https://{domainData.Domain}/.well-known/assetlinks.json");
+                using var httpClient = _httpClientFactory.CreateClient(HttpClients.ChecksHttpClient);
+                httpClient.Timeout = HttpClientConfiguration.Timeout;
+
+                var request = new HttpRequestMessage(HttpMethod.Get, file);
+
+                var response = await httpClient.SendAsync(request);
+
+                if (!response.IsSuccessStatusCode)
                 {
-                    Model = new CheckOutput
+                    return new ServiceOutput
                     {
-                        Stop = true,
-                        Status = "error",
-                        Msg = "The assetlinks.json file was not found at the expected location (HTTP 404 – Not Found).",
-                        Details = $"Make sure the file is available at https://{domainData.Domain}/.well-known/assetlinks.json and that your server is configured to serve it correctly."
-                    },
-                };
+                        Model = new CheckOutput
+                        {
+                            Stop = true,
+                            Status = "error",
+                            Msg = "The assetlinks.json file was not found at the expected location (HTTP 404 – Not Found).",
+                            Details = $"Make sure the file is available at https://{domainData.Domain}/.well-known/assetlinks.json and that your server is configured to serve it correctly."
+                        },
+                    };
+                }
+
+                var body = await response.Content.ReadAsStringAsync();
+                domainData = UpdateCache(domainHash, domainData with { AssetLinksContent = body });
             }
 
-            var body = await response.Content.ReadAsStringAsync();
             return new ServiceOutput
             {
-                Model = null,
+                Model = new CheckOutput
+                {
+                    Status = "success"
+                },
             };
+        }
+
+        /// <summary>
+        /// Updates the cached data for the given key using the provided update function, and resets the cache expiration.
+        /// </summary>
+        private T UpdateCache<T>(string key, T updated) where T : class
+        {
+            ArgumentNullException.ThrowIfNull(key);
+            ArgumentNullException.ThrowIfNull(updated);
+
+            _memoryCache.Set(key, updated, _domainDataCacheDuration);
+
+            return updated;
         }
     }
 }
